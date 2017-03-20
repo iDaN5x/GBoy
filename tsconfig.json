@@ -3,7 +3,8 @@
     "module": "commonjs",
     "target": "es5",
     "sourceMap": true,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "experimentalDecorators": true
   },
   "exclude": [
     "node_modules"

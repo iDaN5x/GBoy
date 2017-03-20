@@ -1,7 +1,7 @@
 /**
  * Created by Idan Asraf on 19/03/2017.
  */
-import {Registers, ByteRegister, WordRegister} from "./Registers";
+import {Registers, ByteRegister, WordRegister, PointerRegister} from "./Registers";
 import {Byte, Word} from "./Primitives";
 import {Memory} from "./Memory";
 import {Flags} from "./Flags";
@@ -48,7 +48,18 @@ export class Z80 {
     }
 
     private _fetchWord() : Word {
-        return this._mem.ReadWord(this._regs.PC++);
+        let res = this._mem.ReadWord(this._regs.PC);
+        this._regs.PC += 2;
+        return res;
+    }
+
+    /*
+     * Clock decorator.
+     */
+    Timing(ticks: number) {
+        return function(target: Function, propertyKey: string, descriptor: PropertyDescriptor) {
+            this._clok
+        };
     }
 
     /*
@@ -75,7 +86,6 @@ export class Z80 {
     }
 
     private _LD_A_$rr(rr: WordRegister) : void {
-        // TODO: what should we do with AF?
         this._regs.A = this._mem.Read(this._regs[rr]);
     }
 
@@ -84,7 +94,6 @@ export class Z80 {
     }
 
     private _LD_$rr_A(rr: WordRegister) : void {
-        // TODO: what should we do with AF?
         this._mem.Write(this._regs[rr], this._regs.A);
     }
 
@@ -122,6 +131,32 @@ export class Z80 {
 
     private _LD_A_$n() : void {
         this._regs.A = this._mem.Read(0xff00 + this._fetchByte());
+    }
+
+    /*
+     * 16-bit Load operations.
+     */
+    private _LD_dd_nn(dd: WordRegister|PointerRegister) : void {
+        this._regs[dd] = this._fetchWord();
+    }
+
+    private _LD_$nn_SP() : void {
+        this._mem.WriteWord(this._fetchWord(), this._regs.SP);
+    }
+
+    private _LD_SP_HL() : void {
+        this._regs.SP = this._regs.HL;
+    }
+
+    private _LD_HL_$SPn() : void {
+        let op = this._fetchByte(),
+            add = this._regs.SP + op;
+
+        this._regs.HL = this._mem.ReadWord(add);
+
+        //this._setFlag(Flags.Carry, add > 0xffff);
+        this._setFlag(Flags.HalfCarry, );
+        this._unsetFlag(Flags.Zero | Flags.Negative);
     }
 }
 

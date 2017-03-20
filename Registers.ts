@@ -2,9 +2,12 @@
  * Created by Idan Asraf on 19/03/2017.
  */
 import {Byte, Word} from "./Primitives";
-export type ByteRegister = 'A'|'B'|'C'|'D'|'E'|'F'|'H'|'L';
 
-export type WordRegister = 'SP'|'PC'|'AF'|'BC'|'DE'|'HL';
+export type ByteRegister = 'A'|'B'|'C'|'D'|'E'|'H'|'L';
+
+export type WordRegister = 'BC'|'DE'|'HL';
+
+export type PointerRegister = 'SP';
 
 export class Registers {
     /*

@@ -11,6 +11,8 @@ export class Memory {
     public Reset() : void {}
 
     public Read(address: Word) : Byte {
+        // TODO: word restriction should remain on final implementation.
+        address &= 0xffff;
         return 0;
     }
 
