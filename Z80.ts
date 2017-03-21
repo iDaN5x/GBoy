@@ -178,7 +178,7 @@ export class Z80 {
         let res = this._regs.A + s + c;
         this._regs.A = res;
 
-        this._setFlag(Flags.Carry, res > 0xffff);
+        this._setFlag(Flags.Carry, res > 0xff);
         this._setFlag(Flags.HalfCarry, A_low + s_low + c > 0x0f);
         this._setFlag(Flags.Zero, this._regs.A == 0);
         this._unsetFlag(Flags.Negative);
@@ -360,6 +360,42 @@ export class Z80 {
         this._setFlag(Flags.HalfCarry, (res & 0x0f) == 0x0f);
         this._setFlag(Flags.Zero, (res & 0xff) == 0);
         this._setFlag(Flags.Negative);
+    }
+
+    /*
+     * 16-bit Arithmetic operations.
+     */
+    private _ADD_HL_ss(ss: WordRegister|PointerRegister) : void {
+        let hl_sec = this._regs.HL & 0x0fff,
+            s_sec = this._regs[ss] & 0x0fff;
+
+        let res = this._regs.HL + this._regs[ss];
+        this._regs.HL = res;
+
+        this._setFlag(Flags.Carry, res > 0xffff);
+        this._setFlag(Flags.HalfCarry, hl_sec + s_sec > 0x0fff);
+        this._unsetFlag(Flags.Negative);
+    }
+
+    private _ADD_SP_n() : void {
+        let n = this._fetchByte();
+
+        let res = this._regs.SP + n;
+        this._regs.SP = res;
+
+        // TODO: Carry of word? byte?.
+        this._setFlag(Flags.Carry, res > 0xffff);
+        // TODO: Half carry of byte? nibble?.
+        //this._setFlag(Flags.HalfCarry, );
+        this._unsetFlag(Flags.Zero | Flags.Negative);
+    }
+
+    private _INC_ss(ss: WordRegister|PointerRegister) : void {
+        this._regs[ss] += 1;
+    }
+
+    private _DEC_ss(ss: WordRegister|PointerRegister) : void {
+        this._regs[ss] -= 1;
     }
 }
 
