@@ -5,9 +5,9 @@ import {Byte, Word} from "./Primitives";
 
 export type ByteRegister = 'A'|'B'|'C'|'D'|'E'|'H'|'L';
 
-export type WordRegister = 'BC'|'DE'|'HL';
+export type WordRegister = 'BC'|'DE'|'HL'|'AF';
 
-export type PointerRegister = 'SP';
+export type PointerRegister = 'SP'|'PC';
 
 export class Registers {
     /*

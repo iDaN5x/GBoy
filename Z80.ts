@@ -13,7 +13,10 @@ export class Z80 {
     /*
      * Component initialization.
      */
-    public constructor() { this.Reset(); }
+    public constructor() {
+        this._regs = new Registers();
+        this._mem = new Memory();
+    }
 
     public Reset() : void {
         this._regs.Reset();
@@ -34,7 +37,9 @@ export class Z80 {
         else       this._regs.F &= ~flag;
     }
 
-    private _unsetFlag(flag: Flags) { this._setFlag(flag, false); }
+    private _unsetFlag(flag: Flags) : void {
+        this._setFlag(flag, false);
+    }
 
     private _resetFlags() : void {
         this._regs.F &= 0x0f;
@@ -51,15 +56,6 @@ export class Z80 {
         let res = this._mem.ReadWord(this._regs.PC);
         this._regs.PC += 2;
         return res;
-    }
-
-    /*
-     * Clock decorator.
-     */
-    Timing(ticks: number) {
-        return function(target: Function, propertyKey: string, descriptor: PropertyDescriptor) {
-            this._clok
-        };
     }
 
     /*
@@ -154,9 +150,21 @@ export class Z80 {
 
         this._regs.HL = this._mem.ReadWord(add);
 
-        //this._setFlag(Flags.Carry, add > 0xffff);
-        this._setFlag(Flags.HalfCarry, );
+        // TODO: Carry of word? byte?.
+        this._setFlag(Flags.Carry, add > 0xffff);
+        // TODO: Half carry of byte? nibble?.
+        //this._setFlag(Flags.HalfCarry, );
         this._unsetFlag(Flags.Zero | Flags.Negative);
+    }
+
+    private _PUSH_ss(ss: WordRegister) : void {
+        this._mem.WriteWord(this._regs.SP, this._regs[ss]);
+        this._regs.SP -= 2;
+    }
+
+    private _POP_dd(dd: WordRegister) : void {
+        this._regs[dd] = this._mem.ReadWord(this._regs.SP);
+        this._regs.SP += 2;
     }
 }
 
