@@ -166,6 +166,201 @@ export class Z80 {
         this._regs[dd] = this._mem.ReadWord(this._regs.SP);
         this._regs.SP += 2;
     }
+
+    /*
+     * 8-bit ALU.
+     */
+    private _ADC_A_s(s: Byte, cy = false) : void {
+        let A_low = this._regs.A & 0x0f,
+            s_low = s & 0x0f,
+            c = +cy;
+
+        let res = this._regs.A + s + c;
+        this._regs.A = res;
+
+        this._setFlag(Flags.Carry, res > 0xffff);
+        this._setFlag(Flags.HalfCarry, A_low + s_low + c > 0x0f);
+        this._setFlag(Flags.Zero, this._regs.A == 0);
+        this._unsetFlag(Flags.Negative);
+    }
+
+    private _ADD_A_r(r: ByteRegister) : void {
+        this._ADC_A_s(this._regs[r]);
+    }
+
+    private _ADD_A_n() : void {
+        this._ADC_A_s(this._fetchByte());
+    }
+
+    private _ADD_A_$HL() : void {
+        this._ADC_A_s(this._mem.Read(this._regs.HL));
+    }
+
+    private _ADC_A_r(r: ByteRegister) : void {
+        this._ADC_A_s(this._regs[r], this._hasFlag(Flags.Carry));
+    }
+
+    private _ADC_A_n() : void {
+        this._ADC_A_s(this._fetchByte(), this._hasFlag(Flags.Carry));
+    }
+
+    private _ADC_A_$HL() : void {
+        this._ADC_A_s(this._mem.Read(this._regs.HL), this._hasFlag(Flags.Carry));
+    }
+
+    private _SBC_A_s(s: Byte, cy = false) : void {
+        let A_low = this._regs.A & 0x0f,
+            s_low = s & 0x0f,
+            c = +cy;
+
+        let res = this._regs.A - s - c;
+        this._regs.A = res;
+
+        this._setFlag(Flags.Carry, res < 0);
+        this._setFlag(Flags.HalfCarry, A_low - s_low - c < 0);
+        this._setFlag(Flags.Zero, this._regs.A == 0);
+        this._unsetFlag(Flags.Negative);
+    }
+
+    private _SUB_A_r(r: ByteRegister) : void {
+        this._SBC_A_s(this._regs[r]);
+    }
+
+    private _SUB_A_n() : void {
+        this._SBC_A_s(this._fetchByte());
+    }
+
+    private _SUB_A_$HL() : void {
+        this._SBC_A_s(this._mem.Read(this._regs.HL));
+    }
+
+    private _SBC_A_r(r: ByteRegister) : void {
+        this._SBC_A_s(this._regs[r], this._hasFlag(Flags.Carry));
+    }
+
+    private _SBC_A_n() : void {
+        this._SBC_A_s(this._fetchByte(), this._hasFlag(Flags.Carry));
+    }
+
+    private _SBC_A_$HL() : void {
+        this._SBC_A_s(this._mem.Read(this._regs.HL), this._hasFlag(Flags.Carry));
+    }
+
+    private _AND_s(s: Byte) : void {
+        this._regs.A &= s;
+
+        this._setFlag(Flags.HalfCarry);
+        this._unsetFlag(Flags.Carry | Flags.Negative);
+        this._setFlag(Flags.Zero, this._regs.A == 0);
+    }
+
+    private _AND_r(r: ByteRegister) : void {
+        this._AND_s(this._regs[r]);
+    }
+
+    private _AND_n(r: ByteRegister) : void {
+        this._AND_s(this._fetchByte());
+    }
+
+    private _AND_$HL(r: ByteRegister) : void {
+        this._AND_s(this._mem.Read(this._regs.HL));
+    }
+
+    private _OR_s(s: Byte) : void {
+        this._regs.A |= s;
+
+        this._unsetFlag(Flags.Carry | Flags.HalfCarry | Flags.Negative);
+        this._setFlag(Flags.Zero, this._regs.A == 0);
+    }
+
+    private _OR_r(r: ByteRegister) : void {
+        this._OR_s(this._regs[r]);
+    }
+
+    private _OR_n(r: ByteRegister) : void {
+        this._OR_s(this._fetchByte());
+    }
+
+    private _OR_$HL(r: ByteRegister) : void {
+        this._OR_s(this._mem.Read(this._regs.HL));
+    }
+
+    private _XOR_s(s: Byte) : void {
+        this._regs.A ^= s;
+
+        this._unsetFlag(Flags.Carry | Flags.HalfCarry | Flags.Negative);
+        this._setFlag(Flags.Zero, this._regs.A == 0);
+    }
+
+    private _XOR_r(r: ByteRegister) : void {
+        this._XOR_s(this._regs[r]);
+    }
+
+    private _XOR_n(r: ByteRegister) : void {
+        this._XOR_s(this._fetchByte());
+    }
+
+    private _XOR_$HL(r: ByteRegister) : void {
+        this._XOR_s(this._mem.Read(this._regs.HL));
+    }
+
+    private _CP_s(s: Byte) : void {
+        let A_low = this._regs.A & 0x0f,
+            s_low = s & 0x0f;
+
+        let res = this._regs.A - s;
+
+        this._setFlag(Flags.Carry, res < 0);
+        this._setFlag(Flags.HalfCarry, A_low - s_low < 0);
+        this._setFlag(Flags.Zero, (res & 0xff) == 0);
+        this._unsetFlag(Flags.Negative);
+    }
+
+    private _CP_r(r: ByteRegister) : void {
+        this._CP_s(this._regs[r]);
+    }
+
+    private _CP_n() : void {
+        this._CP_s(this._fetchByte());
+    }
+
+    private _CP_$HL() : void {
+        this._CP_s(this._mem.Read(this._regs.HL));
+    }
+
+    private _INC_r(r: ByteRegister) : void {
+        let res = this._regs[r] += 1;
+
+        this._setFlag(Flags.HalfCarry, (res & 0x0f) == 0);
+        this._setFlag(Flags.Zero, res == 0);
+        this._unsetFlag(Flags.Negative);
+    }
+
+    private _INC_$HL() : void {
+        let res = this._mem.Read(this._regs.HL) + 1;
+        this._mem.Write(this._regs.HL, res);
+
+        this._setFlag(Flags.HalfCarry, (res & 0x0f) == 0);
+        this._setFlag(Flags.Zero, (res & 0xff) == 0);
+        this._unsetFlag(Flags.Negative);
+    }
+
+    private _DEC_r(r: ByteRegister) : void {
+        let res = this._regs[r] -= 1;
+
+        this._setFlag(Flags.HalfCarry, (res & 0x0f) == 0x0f);
+        this._setFlag(Flags.Zero, res == 0);
+        this._unsetFlag(Flags.Negative);
+    }
+
+    private _DEC_$HL() : void {
+        let res = this._mem.Read(this._regs.HL) - 1;
+        this._mem.Write(this._regs.HL, res);
+
+        this._setFlag(Flags.HalfCarry, (res & 0x0f) == 0x0f);
+        this._setFlag(Flags.Zero, (res & 0xff) == 0);
+        this._setFlag(Flags.Negative);
+    }
 }
 
 export default Z80;
