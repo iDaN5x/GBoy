@@ -6,9 +6,16 @@ import {Byte, Word} from "./Primitives";
 import {Memory} from "./Memory";
 import {Flags} from "./Flags";
 
+enum InterruptsState { Enabling, Enabled, Disabling, Disabled }
+
 export class Z80 {
     private _regs: Registers;
     private _mem: Memory;
+
+    private _interrupts: InterruptsState;
+
+    private _halt: boolean;
+    private _stop: boolean;
 
     /*
      * Component initialization.
@@ -21,9 +28,12 @@ export class Z80 {
     public Reset() : void {
         this._regs.Reset();
         this._mem.Reset();
+        this._halt = false;
     }
 
-    public Start() : void {}
+    public Start() : void {
+        // If _interrupts is Disabling/Enabling, after instruction set to Disbaled/Enabled.
+    }
 
     /*
      * Flags handling.
@@ -397,6 +407,72 @@ export class Z80 {
     private _DEC_ss(ss: WordRegister|PointerRegister) : void {
         this._regs[ss] -= 1;
     }
+
+    /*
+     * Miscellaneous operations.
+     */
+    private _SWAP_r(r: ByteRegister) : void {
+        let op = this._regs[r];
+
+        this._regs[r] = (op >> 4) + (op << 4);
+
+        this._resetFlags();
+        this._setFlag(Flags.Zero, this._regs[r] == 0);
+    }
+
+    private _SWAP_$HL() : void {
+        let op = this._mem.Read(this._regs.HL);
+
+        let res = (op >> 4) + (op << 4);
+
+       this._mem.Write(this._regs.HL, res);
+
+        this._resetFlags();
+        this._setFlag(Flags.Zero, (res & 0xff) == 0);
+    }
+
+    private _DAA() : void {
+        // TODO: implement.
+    }
+
+    private _CPL() : void {
+        this._regs.A = ~this._regs.A;
+
+        this._setFlag(Flags.Negative | Flags.HalfCarry);
+    }
+
+    private _CCF() : void {
+        this._setFlag(Flags.Carry, !this._hasFlag(Flags.Carry));
+        this._unsetFlag(Flags.Negative | Flags.HalfCarry);
+    }
+
+    private _SCF() : void {
+        this._setFlag(Flags.Carry);
+        this._unsetFlag(Flags.Negative | Flags.HalfCarry);
+    }
+
+    private _NOP() : void {}
+
+    private _HALT() : void {
+        // TODO: extra logic?
+        this._halt = true;
+    }
+
+    private _STOP() : void {
+        // TODO: extra logic?
+        this._halt = true;
+        this._stop = true;
+    }
+
+    private _DI() : void {
+        this._interrupts = InterruptsState.Disabling;
+    }
+
+    private _EI() : void {
+        this._interrupts = InterruptsState.Enabling;
+    }
+
+
 }
 
 export default Z80;
