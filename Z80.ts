@@ -2,7 +2,7 @@
  * Created by Idan Asraf on 19/03/2017.
  */
 import {Registers, ByteRegister, WordRegister, PointerRegister} from "./Registers";
-import {Byte, Word} from "./Primitives";
+import {Byte, Word, NBit} from "./Primitives";
 import {Memory} from "./Memory";
 import {Flags} from "./Flags";
 
@@ -638,6 +638,48 @@ export class Z80 {
         this._setFlag(Flags.Carry, lsb == 1);
         this._setFlag(Flags.Zero, res == 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    /*
+     * Bit operations.
+     */
+    private _BIT_x_r(b: NBit, r: ByteRegister) : void {
+        let musk = 1 << b;
+
+        this._setFlag(Flags.HalfCarry);
+        this._unsetFlag(Flags.Negative);
+        this._setFlag(Flags.Zero, (this._regs[r] & musk) == 0)
+    }
+
+    private _BIT_b_$HL(b: NBit) : void {
+        let op = this._mem.Read(this._regs.HL),
+            musk = 1 << b;
+
+        this._setFlag(Flags.HalfCarry);
+        this._unsetFlag(Flags.Negative);
+        this._setFlag(Flags.Zero, (op & musk) == 0)
+    }
+
+    private _SET_b_r(b: NBit, r: ByteRegister) : void {
+        this._regs[r] |= (1 << b);
+    }
+
+    private _SET_b_$HL(b: NBit) : void {
+        let op = this._mem.Read(this._regs.HL),
+            set = 1 << b;
+
+        this._mem.Write(this._regs.HL, op | set);
+    }
+
+    private _RES_b_r(b: NBit, r: ByteRegister) : void {
+        this._regs[r] &= ~(1 << b);
+    }
+
+    private _RES_b_$HL(b: NBit) : void {
+        let op = this._mem.Read(this._regs.HL),
+            reset = ~(1 << b);
+
+        this._mem.Write(this._regs.HL, op & reset);
     }
 }
 
