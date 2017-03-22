@@ -1,17 +1,18 @@
-import {Byte, Word} from "./Primitives";
 /**
  * Created by Idan Asraf on 19/03/2017.
  *
  * Developer's note:
  * The Z80 CPU's architecture is little endian.
  */
+import {Byte, Word} from "./Primitives";
+
 export class Memory {
     public constructor() { this.Reset(); }
 
     public Reset() : void {}
 
     public Read(address: Word) : Byte {
-        // TODO: word restriction should remain on final implementation.
+        // TODO: Implement supporting word restriction.
         address &= 0xffff;
         return 0;
     }
@@ -19,11 +20,13 @@ export class Memory {
     public ReadWord(address: Word) : Word {
         return (
             this.Read(address) +
-            this.Read(address+1) << 8
+            (this.Read(address+1) << 8)
         );
     }
 
-    public Write(address: Word, value: Byte) : void {}
+    public Write(address: Word, value: Byte) : void {
+        // TODO: Implement supporting size restrictions.
+    }
 
     public WriteWord(address: Word, value: Word) : void {
         this.Write(address, value & 0xff);
