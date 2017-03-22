@@ -2,8 +2,8 @@
  * Created by Idan Asraf on 19/03/2017.
  */
 import {Registers, ByteRegister, WordRegister, PointerRegister} from "./Registers";
+import {Memory, PageZeroLocation} from "./Memory";
 import {Byte, Word, NBit} from "./Primitives";
-import {Memory} from "./Memory";
 import {Flags} from "./Flags";
 
 enum InterruptsState { Enabling, Enabled, Disabling, Disabled }
@@ -56,14 +56,28 @@ export class Z80 {
     }
 
     /*
-     * Operand fetching.
+     * Stack handling.
+     */
+    private _stackPush(value: Word) : void {
+        this._mem.WriteWord(this._regs.SP, value);
+        this._regs.SP -= 2;
+    }
+
+    private _stackPop() : Word {
+        let res = this._mem.ReadWord(this._regs.SP);
+        this._regs.SP += 2;
+        return res;
+    }
+
+    /*
+     * Operand handling.
      */
     private _fetchByte() : Byte {
         return this._mem.Read(this._regs.PC++);
     }
 
     private _fetchSignedByte() : Byte {
-        let op = this._fetchByte();
+        let op = this._mem.Read(this._regs.PC++);
 
         if (op < 128) return op;
         else          return -(op & 0b01111111);
@@ -175,19 +189,17 @@ export class Z80 {
     }
 
     private _PUSH_ss(ss: WordRegister) : void {
-        this._mem.WriteWord(this._regs.SP, this._regs[ss]);
-        this._regs.SP -= 2;
+        this._stackPush(this._regs[ss])
     }
 
     private _POP_dd(dd: WordRegister) : void {
-        this._regs[dd] = this._mem.ReadWord(this._regs.SP);
-        this._regs.SP += 2;
+        this._regs[dd] = this._stackPop();
     }
 
     /*
      * 8-bit ALU.
      */
-    private _ADC_A_s(s: Byte, cy = false) : void {
+    private _ADCy_A_s(s: Byte, cy = false) : void {
         let A_low = this._regs.A & 0x0f,
             s_low = s & 0x0f,
             c = +cy;
@@ -202,30 +214,30 @@ export class Z80 {
     }
 
     private _ADD_A_r(r: ByteRegister) : void {
-        this._ADC_A_s(this._regs[r]);
+        this._ADCy_A_s(this._regs[r]);
     }
 
     private _ADD_A_n() : void {
-        this._ADC_A_s(this._fetchByte());
+        this._ADCy_A_s(this._fetchByte());
     }
 
     private _ADD_A_$HL() : void {
-        this._ADC_A_s(this._mem.Read(this._regs.HL));
+        this._ADCy_A_s(this._mem.Read(this._regs.HL));
     }
 
     private _ADC_A_r(r: ByteRegister) : void {
-        this._ADC_A_s(this._regs[r], this._hasFlag(Flags.Carry));
+        this._ADCy_A_s(this._regs[r], this._hasFlag(Flags.Carry));
     }
 
     private _ADC_A_n() : void {
-        this._ADC_A_s(this._fetchByte(), this._hasFlag(Flags.Carry));
+        this._ADCy_A_s(this._fetchByte(), this._hasFlag(Flags.Carry));
     }
 
     private _ADC_A_$HL() : void {
-        this._ADC_A_s(this._mem.Read(this._regs.HL), this._hasFlag(Flags.Carry));
+        this._ADCy_A_s(this._mem.Read(this._regs.HL), this._hasFlag(Flags.Carry));
     }
 
-    private _SBC_A_s(s: Byte, cy = false) : void {
+    private _SBCy_A_s(s: Byte, cy = false) : void {
         let A_low = this._regs.A & 0x0f,
             s_low = s & 0x0f,
             c = +cy;
@@ -240,27 +252,27 @@ export class Z80 {
     }
 
     private _SUB_A_r(r: ByteRegister) : void {
-        this._SBC_A_s(this._regs[r]);
+        this._SBCy_A_s(this._regs[r]);
     }
 
     private _SUB_A_n() : void {
-        this._SBC_A_s(this._fetchByte());
+        this._SBCy_A_s(this._fetchByte());
     }
 
     private _SUB_A_$HL() : void {
-        this._SBC_A_s(this._mem.Read(this._regs.HL));
+        this._SBCy_A_s(this._mem.Read(this._regs.HL));
     }
 
     private _SBC_A_r(r: ByteRegister) : void {
-        this._SBC_A_s(this._regs[r], this._hasFlag(Flags.Carry));
+        this._SBCy_A_s(this._regs[r], this._hasFlag(Flags.Carry));
     }
 
     private _SBC_A_n() : void {
-        this._SBC_A_s(this._fetchByte(), this._hasFlag(Flags.Carry));
+        this._SBCy_A_s(this._fetchByte(), this._hasFlag(Flags.Carry));
     }
 
     private _SBC_A_$HL() : void {
-        this._SBC_A_s(this._mem.Read(this._regs.HL), this._hasFlag(Flags.Carry));
+        this._SBCy_A_s(this._mem.Read(this._regs.HL), this._hasFlag(Flags.Carry));
     }
 
     private _AND_s(s: Byte) : void {
@@ -696,26 +708,8 @@ export class Z80 {
         this._regs.PC = this._fetchWord();
     }
 
-    private _JP_Z_nn() : void {
-        if (this._hasFlag(Flags.Zero)) {
-            this._regs.PC = this._fetchWord();
-        }
-    }
-
-    private _JP_NZ_nn() : void {
-        if (!this._hasFlag(Flags.Zero)) {
-            this._regs.PC = this._fetchWord();
-        }
-    }
-
-    private _JP_C_nn() : void {
-        if (this._hasFlag(Flags.Carry)) {
-            this._regs.PC = this._fetchWord();
-        }
-    }
-
-    private _JP_NC_nn() : void {
-        if (!this._hasFlag(Flags.Carry)) {
+    private _JP_tf_nn(f: Flags, t: boolean) : void {
+        if (t == this._hasFlag(f)) {
             this._regs.PC = this._fetchWord();
         }
     }
@@ -724,30 +718,12 @@ export class Z80 {
         this._regs.PC = this._regs.HL;
     }
 
-    private _JR_e() : void {
+    private _JP_e() : void {
         this._regs.PC += this._fetchSignedByte();
     }
 
-    private _JP_Z_e() : void {
-        if (this._hasFlag(Flags.Zero)) {
-            this._regs.PC += this._fetchSignedByte();
-        }
-    }
-
-    private _JP_NZ_e() : void {
-        if (!this._hasFlag(Flags.Zero)) {
-            this._regs.PC += this._fetchSignedByte();
-        }
-    }
-
-    private _JP_C_e() : void {
-        if (this._hasFlag(Flags.Carry)) {
-            this._regs.PC += this._fetchSignedByte();
-        }
-    }
-
-    private _JP_NC_e() : void {
-        if (!this._hasFlag(Flags.Carry)) {
+    private _JP_tf_e(f: Flags, t: boolean) : void {
+        if (t = this._hasFlag(f)) {
             this._regs.PC += this._fetchSignedByte();
         }
     }
@@ -756,34 +732,47 @@ export class Z80 {
      * Call operations.
      */
     private _CALL_nn() : void {
-        this._mem.WriteWord(this._regs.SP, this._regs.PC);
-
-        this._regs.SP -= 2;
+        this._stackPush(this._regs.PC);
         this._regs.PC = this._fetchWord();
     }
 
-    private _CALL_Z_nn() : void {
-        if (this._hasFlag(Flags.Zero)) {
+    private _CALL_f_nn(f: Flags) : void {
+        if (this._hasFlag(f)) {
             this._CALL_nn();
         }
     }
 
-    private _CALL_NZ_nn() : void {
-        if (!this._hasFlag(Flags.Zero)) {
+    private _CALL_Nf_nn(f: Flags) : void {
+        if (!this._hasFlag(f)) {
             this._CALL_nn();
         }
     }
 
-    private _CALL_C_nn() : void {
-        if (this._hasFlag(Flags.Carry)) {
-            this._CALL_nn();
+    /*
+     * Restart operation.
+     */
+    private _RST_n(n: PageZeroLocation) : void {
+        this._stackPush(this._regs.PC-1);
+        this._regs.PC = n;
+    }
+
+    /*
+     * Return operations.
+     */
+    private _RET() : void {
+        this._regs.PC = this._stackPop();
+    }
+
+    private _RET_tf(f: Flags, t: boolean) : void {
+        if (t == this._hasFlag(f)) {
+            this._regs.PC = this._stackPop();
         }
     }
 
-    private _CALL_NC_nn() : void {
-        if (!this._hasFlag(Flags.Carry)) {
-            this._CALL_nn();
-        }
+    private _RETI() : void {
+        // TODO: Should I enable interrupts immediately?
+        this._regs.PC = this._stackPop();
+        this._interrupts = InterruptsState.Enabling;
     }
 }
 
