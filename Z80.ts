@@ -56,10 +56,17 @@ export class Z80 {
     }
 
     /*
-     * Code fetching.
+     * Operand fetching.
      */
     private _fetchByte() : Byte {
         return this._mem.Read(this._regs.PC++);
+    }
+
+    private _fetchSignedByte() : Byte {
+        let op = this._fetchByte();
+
+        if (op < 128) return op;
+        else          return -(op & 0b01111111);
     }
 
     private _fetchWord() : Word {
@@ -154,9 +161,9 @@ export class Z80 {
         this._regs.SP = this._regs.HL;
     }
 
-    private _LD_HL_$SPn() : void {
-        let op = this._fetchByte(),
-            add = this._regs.SP + op;
+    private _LD_HL_$SPe() : void {
+        let e = this._fetchSignedByte(),
+            add = this._regs.SP + e;
 
         this._regs.HL = this._mem.ReadWord(add);
 
@@ -387,10 +394,10 @@ export class Z80 {
         this._unsetFlag(Flags.Negative);
     }
 
-    private _ADD_SP_n() : void {
-        let n = this._fetchByte();
+    private _ADD_SP_e() : void {
+        let e = this._fetchSignedByte();
 
-        let res = this._regs.SP + n;
+        let res = this._regs.SP + e;
         this._regs.SP = res;
 
         // TODO: Carry of word? byte?.
@@ -680,6 +687,69 @@ export class Z80 {
             reset = ~(1 << b);
 
         this._mem.Write(this._regs.HL, op & reset);
+    }
+
+    /*
+     * Jump operations.
+     */
+    private _JP_nn() : void {
+        this._regs.PC = this._fetchWord();
+    }
+
+    private _JP_Z_nn() : void {
+        if (this._hasFlag(Flags.Zero)) {
+            this._regs.PC = this._fetchWord();
+        }
+    }
+
+    private _JP_NZ_nn() : void {
+        if (!this._hasFlag(Flags.Zero)) {
+            this._regs.PC = this._fetchWord();
+        }
+    }
+
+    private _JP_C_nn() : void {
+        if (this._hasFlag(Flags.Carry)) {
+            this._regs.PC = this._fetchWord();
+        }
+    }
+
+    private _JP_NC_nn() : void {
+        if (!this._hasFlag(Flags.Carry)) {
+            this._regs.PC = this._fetchWord();
+        }
+    }
+
+    private _JP_HL() : void {
+        this._regs.PC = this._regs.HL;
+    }
+
+    private _JR_e() : void {
+        this._regs.PC += this._fetchSignedByte();
+    }
+
+    private _JP_Z_e() : void {
+        if (this._hasFlag(Flags.Zero)) {
+            this._regs.PC += this._fetchSignedByte();
+        }
+    }
+
+    private _JP_NZ_e() : void {
+        if (!this._hasFlag(Flags.Zero)) {
+            this._regs.PC += this._fetchSignedByte();
+        }
+    }
+
+    private _JP_C_e() : void {
+        if (this._hasFlag(Flags.Carry)) {
+            this._regs.PC += this._fetchSignedByte();
+        }
+    }
+
+    private _JP_NC_e() : void {
+        if (!this._hasFlag(Flags.Carry)) {
+            this._regs.PC += this._fetchSignedByte();
+        }
     }
 }
 
