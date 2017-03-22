@@ -472,7 +472,173 @@ export class Z80 {
         this._interrupts = InterruptsState.Enabling;
     }
 
+    /*
+     * Rotate & Shift operations.
+     */
+    private _RLC_r(r: ByteRegister) : void {
+        let msb = this._regs[r] >> 7;
 
+        this._regs[r] = (this._regs[r] << 1) + msb;
+
+        this._setFlag(Flags.Carry, msb == 1);
+        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _RLC_$HL() : void {
+        let op = this._mem.Read(this._regs.HL);
+
+        let msb = op >> 7;
+        let res = (op << 1) + msb;
+
+        this._mem.Write(this._regs.HL, res);
+
+        this._setFlag(Flags.Carry, msb == 1);
+        this._setFlag(Flags.Zero, res == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _RL_r(r: ByteRegister) : void {
+        let cy = +this._hasFlag(Flags.Carry),
+            msb = this._regs[r] >> 7;
+
+        this._regs[r] = (this._regs[r] << 1) + cy;
+
+        this._setFlag(Flags.Carry, msb == 1);
+        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _RL_$HL() : void {
+        let op = this._mem.Read(this._regs.HL),
+            cy = +this._hasFlag(Flags.Carry);
+
+        let res = (op << 1) + cy,
+            msb = op >> 7;
+
+        this._mem.Write(this._regs.HL, res);
+
+        this._setFlag(Flags.Carry, msb == 1);
+        this._setFlag(Flags.Zero, res == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _RRC_r(r: ByteRegister) : void {
+        let lsb = this._regs[r] << 7;
+
+        this._regs[r] = (this._regs[r] >> 1) + lsb;
+
+        this._setFlag(Flags.Carry, lsb > 0);
+        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _RRC_$HL() : void {
+        let op = this._mem.Read(this._regs.HL);
+
+        let lsb = op << 7;
+        let res = (op >> 1) + lsb;
+
+        this._mem.Write(this._regs.HL, res);
+
+        this._setFlag(Flags.Carry, lsb > 0);
+        this._setFlag(Flags.Zero, res == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _RR_r(r: ByteRegister) : void {
+        let cy = +this._hasFlag(Flags.Carry),
+            lsb = this._regs[r] & 0b00000001;
+
+        this._regs[r] = (this._regs[r] >> 1) + cy;
+
+        this._setFlag(Flags.Carry, lsb == 1);
+        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _RR_$HL() : void {
+        let op = this._mem.Read(this._regs.HL),
+            cy = +this._hasFlag(Flags.Carry);
+
+        let res = (op >> 1) + cy,
+            lsb = op & 0b00000001;
+
+        this._mem.Write(this._regs.HL, res);
+
+        this._setFlag(Flags.Carry, lsb == 1);
+        this._setFlag(Flags.Zero, res == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _SLA_r(r: ByteRegister) : void {
+        let msb = this._regs[r] >> 7;
+
+        this._regs[r] <<= 1;
+
+        this._setFlag(Flags.Carry, msb == 1);
+        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _SLA_$HL() : void {
+        let op = this._mem.Read(this._regs.HL);
+
+        let res =  op << 1,
+            msb = op >> 7;
+
+        this._mem.Write(this._regs.HL, res);
+
+        this._setFlag(Flags.Carry, msb == 1);
+        this._setFlag(Flags.Zero, res == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _SRA_r(r: ByteRegister) : void {
+        let msb = this._regs[r] & 0b10000000;
+
+        this._regs[r] = (this._regs[r] >> 1) + msb;
+
+        this._setFlag(Flags.Carry, msb > 0);
+        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _SRA_$HL() : void {
+        let op = this._mem.Read(this._regs.HL);
+
+        let msb = op & 0b10000000;
+        let res = (op >> 1) + msb;
+
+        this._mem.Write(this._regs.HL, res);
+
+        this._setFlag(Flags.Carry, msb > 0);
+        this._setFlag(Flags.Zero, res == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _SRL_r(r: ByteRegister) : void {
+        let lsb = this._regs[r] & 0b00000001;
+
+        this._regs[r] >>= 1;
+
+        this._setFlag(Flags.Carry, lsb == 1);
+        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
+
+    private _SRL_$HL() : void {
+        let op = this._mem.Read(this._regs.HL);
+
+        let res =  op >> 1,
+            lsb = op & 0b00000001;
+
+        this._mem.Write(this._regs.HL, res);
+
+        this._setFlag(Flags.Carry, lsb == 1);
+        this._setFlag(Flags.Zero, res == 0);
+        this._unsetFlag(Flags.HalfCarry | Flags.Negative);
+    }
 }
 
 export default Z80;
