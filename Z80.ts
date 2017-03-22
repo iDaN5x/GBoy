@@ -751,6 +751,40 @@ export class Z80 {
             this._regs.PC += this._fetchSignedByte();
         }
     }
+
+    /*
+     * Call operations.
+     */
+    private _CALL_nn() : void {
+        this._mem.WriteWord(this._regs.SP, this._regs.PC);
+
+        this._regs.SP -= 2;
+        this._regs.PC = this._fetchWord();
+    }
+
+    private _CALL_Z_nn() : void {
+        if (this._hasFlag(Flags.Zero)) {
+            this._CALL_nn();
+        }
+    }
+
+    private _CALL_NZ_nn() : void {
+        if (!this._hasFlag(Flags.Zero)) {
+            this._CALL_nn();
+        }
+    }
+
+    private _CALL_C_nn() : void {
+        if (this._hasFlag(Flags.Carry)) {
+            this._CALL_nn();
+        }
+    }
+
+    private _CALL_NC_nn() : void {
+        if (!this._hasFlag(Flags.Carry)) {
+            this._CALL_nn();
+        }
+    }
 }
 
 export default Z80;
