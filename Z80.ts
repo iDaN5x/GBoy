@@ -451,15 +451,19 @@ export class Z80 {
     }
 
     private _DAA() : void {
-        let rNib = this._regs.A & 0x0f,
-            lNib;
+        // The LS nibble of Register A.
+        let rNib = this._regs.A & 0x0f;
 
+        // Check if the LS nibble is a non-BCD number.
         if(rNib > 9 || this._hasFlag(Flags.HalfCarry)) {
             this._regs.A += 0x06;
         }
 
-        lNib = this._regs.A >> 4;
+        // The MS nibble of Register A.
+        let lNib = this._regs.A >> 4;
 
+        // Check if the MS nibble is a non-BCD number.
+        // set Carry Flag if it was fixed, reset otherwise.
         if(lNib > 9 || this._hasFlag(Flags.Carry)) {
             this._regs.A += 0x60;
             this._setFlag(Flags.Carry);
