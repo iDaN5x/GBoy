@@ -78,9 +78,7 @@ export class Z80 {
 
     private _fetchSignedByte() : Byte {
         let op = this._mem.Read(this._regs.PC++);
-
-        if (op < 128) return op;
-        else          return -(op & 0b01111111);
+        return op < 128 ? op : op - 256;
     }
 
     private _fetchWord() : Word {
@@ -179,12 +177,13 @@ export class Z80 {
         let e = this._fetchSignedByte(),
             add = this._regs.SP + e;
 
+        let spNib = this._regs.SP & 0x000f,
+            eNib = e & 0x0f;
+
         this._regs.HL = this._mem.ReadWord(add);
 
-        // TODO: Carry of word? byte?.
         this._setFlag(Flags.Carry, add > 0xffff);
-        // TODO: Half carry of byte? nibble?.
-        //this._setFlag(Flags.HalfCarry, );
+        this._setFlag(Flags.HalfCarry, spNib + eNib > 0x0f);
         this._unsetFlag(Flags.Zero | Flags.Negative);
     }
 
@@ -409,13 +408,14 @@ export class Z80 {
     private _ADD_SP_e() : void {
         let e = this._fetchSignedByte();
 
+        let spNib = this._regs.SP & 0x000f,
+            eNib = e & 0x0f;
+
         let res = this._regs.SP + e;
         this._regs.SP = res;
 
-        // TODO: Carry of word? byte?.
         this._setFlag(Flags.Carry, res > 0xffff);
-        // TODO: Half carry of byte? nibble?.
-        //this._setFlag(Flags.HalfCarry, );
+        this._setFlag(Flags.HalfCarry, spNib + eNib > 0x0f);
         this._unsetFlag(Flags.Zero | Flags.Negative);
     }
 
