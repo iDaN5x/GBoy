@@ -451,7 +451,24 @@ export class Z80 {
     }
 
     private _DAA() : void {
-        // TODO: implement.
+        let rNib = this._regs.A & 0x0f,
+            lNib;
+
+        if(rNib > 9 || this._hasFlag(Flags.HalfCarry)) {
+            this._regs.A += 0x06;
+        }
+
+        lNib = this._regs.A >> 4;
+
+        if(lNib > 9 || this._hasFlag(Flags.Carry)) {
+            this._regs.A += 0x60;
+            this._setFlag(Flags.Carry);
+        }
+
+        else this._unsetFlag(Flags.Carry);
+
+        this._setFlag(Flags.Zero, this._regs.A == 0);
+        this._unsetFlag(Flags.HalfCarry);
     }
 
     private _CPL() : void {
