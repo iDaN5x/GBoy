@@ -4,7 +4,8 @@
     "target": "es5",
     "sourceMap": true,
     "strictNullChecks": false,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "outDir": "./bin"
   },
   "exclude": [
     "node_modules"

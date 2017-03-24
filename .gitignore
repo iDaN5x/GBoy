@@ -1,5 +1,5 @@
-## File-based project format:
-*.iws
+### Project-specific ###
+bin/
 
 ### TypeScript ###
 *.js
@@ -61,6 +61,7 @@ jspm_packages
 .idea/**/sqlDataSources.xml
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
+.idea/**/typescript-compiler.xml
 
 # Gradle:
 .idea/**/gradle.xml

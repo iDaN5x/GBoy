@@ -2,8 +2,8 @@
  * Created by Idan Asraf on 19/03/2017.
  */
 import {Registers, ByteRegister, WordRegister, PointerRegister} from "./Registers";
-import {Memory, PageZeroLocation} from "./Memory";
-import {Byte, Word, NBit} from "./Primitives";
+import {Memory, PageZeroLocation} from "../Memory";
+import {Byte, Word, NBit} from "../Primitives";
 import {Flags} from "./Flags";
 
 enum InterruptsState { Enabling, Enabled, Disabling, Disabled }

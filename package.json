@@ -1,0 +1,13 @@
+{
+  "name": "GBoy",
+  "version": "0.1.0a",
+  "description": "Gameboy Emulator Online",
+  "main": "GBoy.ts",
+  "repository": "https://github.com/iDaN5x/GBoy.git",
+  "author": "Idan A. <idan5x@live.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "jasmine": "^2.5.3",
+    "karma": "^1.5.0"
+  }
+}
