@@ -1,0 +1,35 @@
+{
+  "extends": "tslint:recommended",
+  "rules": {
+    "trailing-comma": [
+      true,
+      {
+        "singleline": "never",
+        "multiline": "never"
+      }
+    ],
+    "typedef-whitespace": [
+      true,
+      {
+        "call-signature": "space",
+        "index-signature": "space",
+        "property-declaration": "nospace",
+        "parameter": "nospace",
+        "variable-declaration": "nospace"
+      }
+    ],
+    "one-line": [
+      true,
+      "check-whitespace",
+      "check-open-brace",
+      "check-catch"
+    ],
+    "eofline": false,
+    "variable-name": false,
+    "no-bitwise": false,
+    "quotemark": false,
+    "no-trailing-whitespace": false,
+    "ordered-imports": false,
+    "one-variable-per-declaration": false
+  }
+}

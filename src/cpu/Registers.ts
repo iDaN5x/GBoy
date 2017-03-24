@@ -11,20 +11,20 @@ export class Registers {
     /*
      * 8-bit registers.
      */
-    private _a : Byte;
-    private _b : Byte;
-    private _c : Byte;
-    private _d : Byte;
-    private _e : Byte;
-    private _f : Byte;
-    private _h : Byte;
-    private _l : Byte;
+    private _a: Byte;
+    private _b: Byte;
+    private _c: Byte;
+    private _d: Byte;
+    private _e: Byte;
+    private _f: Byte;
+    private _h: Byte;
+    private _l: Byte;
 
     /*
      * 16-bit registers.
      */
-    private _sp : Word;
-    private _pc : Word;
+    private _sp: Word;
+    private _pc: Word;
 
     /*
      * Component initialization.
@@ -74,7 +74,6 @@ export class Registers {
     public get L() : Byte { return this._l; }
     public set L(value: Byte) { this._l = value & 0xff; }
 
-
     /*
      * 16-bit register accessors.
      */
@@ -83,7 +82,7 @@ export class Registers {
 
     public get SP() : Word { return this._sp; }
     public set SP(value: Word) { this._sp = value & 0xffff; }
-    
+
     /*
      * Register-duos accessors.
      */

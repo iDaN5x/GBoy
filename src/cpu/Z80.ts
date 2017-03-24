@@ -43,8 +43,11 @@ export class Z80 {
     }
 
     private _setFlag(flag: Flags, state: boolean = true) {
-        if (state) this._regs.F |= flag;
-        else       this._regs.F &= ~flag;
+        if (state) {
+            this._regs.F |= flag;
+        } else {
+            this._regs.F &= ~flag;
+        }
     }
 
     private _unsetFlag(flag: Flags) : void {
@@ -188,7 +191,7 @@ export class Z80 {
     }
 
     private _PUSH_ss(ss: WordRegister) : void {
-        this._stackPush(this._regs[ss])
+        this._stackPush(this._regs[ss]);
     }
 
     private _POP_dd(dd: WordRegister) : void {
@@ -208,7 +211,7 @@ export class Z80 {
 
         this._setFlag(Flags.Carry, res > 0xff);
         this._setFlag(Flags.HalfCarry, A_low + s_low + c > 0x0f);
-        this._setFlag(Flags.Zero, this._regs.A == 0);
+        this._setFlag(Flags.Zero, this._regs.A === 0);
         this._unsetFlag(Flags.Negative);
     }
 
@@ -246,7 +249,7 @@ export class Z80 {
 
         this._setFlag(Flags.Carry, res < 0);
         this._setFlag(Flags.HalfCarry, A_low - s_low - c < 0);
-        this._setFlag(Flags.Zero, this._regs.A == 0);
+        this._setFlag(Flags.Zero, this._regs.A === 0);
         this._unsetFlag(Flags.Negative);
     }
 
@@ -279,7 +282,7 @@ export class Z80 {
 
         this._setFlag(Flags.HalfCarry);
         this._unsetFlag(Flags.Carry | Flags.Negative);
-        this._setFlag(Flags.Zero, this._regs.A == 0);
+        this._setFlag(Flags.Zero, this._regs.A === 0);
     }
 
     private _AND_r(r: ByteRegister) : void {
@@ -298,7 +301,7 @@ export class Z80 {
         this._regs.A |= s;
 
         this._unsetFlag(Flags.Carry | Flags.HalfCarry | Flags.Negative);
-        this._setFlag(Flags.Zero, this._regs.A == 0);
+        this._setFlag(Flags.Zero, this._regs.A === 0);
     }
 
     private _OR_r(r: ByteRegister) : void {
@@ -317,7 +320,7 @@ export class Z80 {
         this._regs.A ^= s;
 
         this._unsetFlag(Flags.Carry | Flags.HalfCarry | Flags.Negative);
-        this._setFlag(Flags.Zero, this._regs.A == 0);
+        this._setFlag(Flags.Zero, this._regs.A === 0);
     }
 
     private _XOR_r(r: ByteRegister) : void {
@@ -340,7 +343,7 @@ export class Z80 {
 
         this._setFlag(Flags.Carry, res < 0);
         this._setFlag(Flags.HalfCarry, A_low - s_low < 0);
-        this._setFlag(Flags.Zero, (res & 0xff) == 0);
+        this._setFlag(Flags.Zero, (res & 0xff) === 0);
         this._unsetFlag(Flags.Negative);
     }
 
@@ -359,8 +362,8 @@ export class Z80 {
     private _INC_r(r: ByteRegister) : void {
         let res = this._regs[r] += 1;
 
-        this._setFlag(Flags.HalfCarry, (res & 0x0f) == 0);
-        this._setFlag(Flags.Zero, res == 0);
+        this._setFlag(Flags.HalfCarry, (res & 0x0f) === 0);
+        this._setFlag(Flags.Zero, res === 0);
         this._unsetFlag(Flags.Negative);
     }
 
@@ -368,16 +371,16 @@ export class Z80 {
         let res = this._mem.Read(this._regs.HL) + 1;
         this._mem.Write(this._regs.HL, res);
 
-        this._setFlag(Flags.HalfCarry, (res & 0x0f) == 0);
-        this._setFlag(Flags.Zero, (res & 0xff) == 0);
+        this._setFlag(Flags.HalfCarry, (res & 0x0f) === 0);
+        this._setFlag(Flags.Zero, (res & 0xff) === 0);
         this._unsetFlag(Flags.Negative);
     }
 
     private _DEC_r(r: ByteRegister) : void {
         let res = this._regs[r] -= 1;
 
-        this._setFlag(Flags.HalfCarry, (res & 0x0f) == 0x0f);
-        this._setFlag(Flags.Zero, res == 0);
+        this._setFlag(Flags.HalfCarry, (res & 0x0f) === 0x0f);
+        this._setFlag(Flags.Zero, res === 0);
         this._unsetFlag(Flags.Negative);
     }
 
@@ -385,8 +388,8 @@ export class Z80 {
         let res = this._mem.Read(this._regs.HL) - 1;
         this._mem.Write(this._regs.HL, res);
 
-        this._setFlag(Flags.HalfCarry, (res & 0x0f) == 0x0f);
-        this._setFlag(Flags.Zero, (res & 0xff) == 0);
+        this._setFlag(Flags.HalfCarry, (res & 0x0f) === 0x0f);
+        this._setFlag(Flags.Zero, (res & 0xff) === 0);
         this._setFlag(Flags.Negative);
     }
 
@@ -436,7 +439,7 @@ export class Z80 {
         this._regs[r] = (op >> 4) + (op << 4);
 
         this._resetFlags();
-        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._setFlag(Flags.Zero, this._regs[r] === 0);
     }
 
     private _SWAP_$HL() : void {
@@ -444,10 +447,10 @@ export class Z80 {
 
         let res = (op >> 4) + (op << 4);
 
-       this._mem.Write(this._regs.HL, res);
+        this._mem.Write(this._regs.HL, res);
 
         this._resetFlags();
-        this._setFlag(Flags.Zero, (res & 0xff) == 0);
+        this._setFlag(Flags.Zero, (res & 0xff) === 0);
     }
 
     private _DAA() : void {
@@ -455,7 +458,7 @@ export class Z80 {
         let rNib = this._regs.A & 0x0f;
 
         // Check if the LS nibble is a non-BCD number.
-        if(rNib > 9 || this._hasFlag(Flags.HalfCarry)) {
+        if (rNib > 9 || this._hasFlag(Flags.HalfCarry)) {
             this._regs.A += 0x06;
         }
 
@@ -464,14 +467,14 @@ export class Z80 {
 
         // Check if the MS nibble is a non-BCD number.
         // set Carry Flag if it was fixed, reset otherwise.
-        if(lNib > 9 || this._hasFlag(Flags.Carry)) {
+        if (lNib > 9 || this._hasFlag(Flags.Carry)) {
             this._regs.A += 0x60;
             this._setFlag(Flags.Carry);
+        } else {
+            this._unsetFlag(Flags.Carry);
         }
 
-        else this._unsetFlag(Flags.Carry);
-
-        this._setFlag(Flags.Zero, this._regs.A == 0);
+        this._setFlag(Flags.Zero, this._regs.A === 0);
         this._unsetFlag(Flags.HalfCarry);
     }
 
@@ -491,7 +494,9 @@ export class Z80 {
         this._unsetFlag(Flags.Negative | Flags.HalfCarry);
     }
 
-    private _NOP() : void {}
+    private _NOP(): void {
+        // No Operation.
+    }
 
     private _HALT() : void {
         // TODO: extra logic?
@@ -520,8 +525,8 @@ export class Z80 {
 
         this._regs[r] = (this._regs[r] << 1) + msb;
 
-        this._setFlag(Flags.Carry, msb == 1);
-        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._setFlag(Flags.Carry, msb === 1);
+        this._setFlag(Flags.Zero, this._regs[r] === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -533,8 +538,8 @@ export class Z80 {
 
         this._mem.Write(this._regs.HL, res);
 
-        this._setFlag(Flags.Carry, msb == 1);
-        this._setFlag(Flags.Zero, res == 0);
+        this._setFlag(Flags.Carry, msb === 1);
+        this._setFlag(Flags.Zero, res === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -544,8 +549,8 @@ export class Z80 {
 
         this._regs[r] = (this._regs[r] << 1) + cy;
 
-        this._setFlag(Flags.Carry, msb == 1);
-        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._setFlag(Flags.Carry, msb === 1);
+        this._setFlag(Flags.Zero, this._regs[r] === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -558,8 +563,8 @@ export class Z80 {
 
         this._mem.Write(this._regs.HL, res);
 
-        this._setFlag(Flags.Carry, msb == 1);
-        this._setFlag(Flags.Zero, res == 0);
+        this._setFlag(Flags.Carry, msb === 1);
+        this._setFlag(Flags.Zero, res === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -569,7 +574,7 @@ export class Z80 {
         this._regs[r] = (this._regs[r] >> 1) + lsb;
 
         this._setFlag(Flags.Carry, lsb > 0);
-        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._setFlag(Flags.Zero, this._regs[r] === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -582,7 +587,7 @@ export class Z80 {
         this._mem.Write(this._regs.HL, res);
 
         this._setFlag(Flags.Carry, lsb > 0);
-        this._setFlag(Flags.Zero, res == 0);
+        this._setFlag(Flags.Zero, res === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -592,8 +597,8 @@ export class Z80 {
 
         this._regs[r] = (this._regs[r] >> 1) + cy;
 
-        this._setFlag(Flags.Carry, lsb == 1);
-        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._setFlag(Flags.Carry, lsb === 1);
+        this._setFlag(Flags.Zero, this._regs[r] === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -606,8 +611,8 @@ export class Z80 {
 
         this._mem.Write(this._regs.HL, res);
 
-        this._setFlag(Flags.Carry, lsb == 1);
-        this._setFlag(Flags.Zero, res == 0);
+        this._setFlag(Flags.Carry, lsb === 1);
+        this._setFlag(Flags.Zero, res === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -616,8 +621,8 @@ export class Z80 {
 
         this._regs[r] <<= 1;
 
-        this._setFlag(Flags.Carry, msb == 1);
-        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._setFlag(Flags.Carry, msb === 1);
+        this._setFlag(Flags.Zero, this._regs[r] === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -629,8 +634,8 @@ export class Z80 {
 
         this._mem.Write(this._regs.HL, res);
 
-        this._setFlag(Flags.Carry, msb == 1);
-        this._setFlag(Flags.Zero, res == 0);
+        this._setFlag(Flags.Carry, msb === 1);
+        this._setFlag(Flags.Zero, res === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -640,7 +645,7 @@ export class Z80 {
         this._regs[r] = (this._regs[r] >> 1) + msb;
 
         this._setFlag(Flags.Carry, msb > 0);
-        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._setFlag(Flags.Zero, this._regs[r] === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -653,7 +658,7 @@ export class Z80 {
         this._mem.Write(this._regs.HL, res);
 
         this._setFlag(Flags.Carry, msb > 0);
-        this._setFlag(Flags.Zero, res == 0);
+        this._setFlag(Flags.Zero, res === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -662,8 +667,8 @@ export class Z80 {
 
         this._regs[r] >>= 1;
 
-        this._setFlag(Flags.Carry, lsb == 1);
-        this._setFlag(Flags.Zero, this._regs[r] == 0);
+        this._setFlag(Flags.Carry, lsb === 1);
+        this._setFlag(Flags.Zero, this._regs[r] === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -675,8 +680,8 @@ export class Z80 {
 
         this._mem.Write(this._regs.HL, res);
 
-        this._setFlag(Flags.Carry, lsb == 1);
-        this._setFlag(Flags.Zero, res == 0);
+        this._setFlag(Flags.Carry, lsb === 1);
+        this._setFlag(Flags.Zero, res === 0);
         this._unsetFlag(Flags.HalfCarry | Flags.Negative);
     }
 
@@ -688,7 +693,7 @@ export class Z80 {
 
         this._setFlag(Flags.HalfCarry);
         this._unsetFlag(Flags.Negative);
-        this._setFlag(Flags.Zero, (this._regs[r] & musk) == 0)
+        this._setFlag(Flags.Zero, (this._regs[r] & musk) === 0);
     }
 
     private _BIT_b_$HL(b: NBit) : void {
@@ -697,7 +702,7 @@ export class Z80 {
 
         this._setFlag(Flags.HalfCarry);
         this._unsetFlag(Flags.Negative);
-        this._setFlag(Flags.Zero, (op & musk) == 0)
+        this._setFlag(Flags.Zero, (op & musk) === 0);
     }
 
     private _SET_b_r(b: NBit, r: ByteRegister) : void {
@@ -730,7 +735,7 @@ export class Z80 {
     }
 
     private _JP_tf_nn(f: Flags, t: boolean) : void {
-        if (t == this._hasFlag(f)) {
+        if (t === this._hasFlag(f)) {
             this._regs.PC = this._fetchWord();
         }
     }
@@ -744,7 +749,7 @@ export class Z80 {
     }
 
     private _JP_tf_e(f: Flags, t: boolean) : void {
-        if (t = this._hasFlag(f)) {
+        if (t === this._hasFlag(f)) {
             this._regs.PC += this._fetchSignedByte();
         }
     }
@@ -773,7 +778,7 @@ export class Z80 {
      * Restart operation.
      */
     private _RST_n(n: PageZeroLocation) : void {
-        this._stackPush(this._regs.PC-1);
+        this._stackPush(this._regs.PC - 1);
         this._regs.PC = n;
     }
 
@@ -785,7 +790,7 @@ export class Z80 {
     }
 
     private _RET_tf(f: Flags, t: boolean) : void {
-        if (t == this._hasFlag(f)) {
+        if (t === this._hasFlag(f)) {
             this._regs.PC = this._stackPop();
         }
     }

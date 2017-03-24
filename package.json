@@ -6,10 +6,14 @@
   "repository": "https://github.com/iDaN5x/GBoy.git",
   "author": "Idan A. <idan5x@live.com>",
   "license": "MIT",
+  "scripts": {
+    "postinstall": "typings install"
+  },
   "devDependencies": {
-    "typescript": "^2.2.1",
-    "typings": "^2.1.0",
     "jasmine": "^2.5.3",
-    "karma": "^1.5.0"
+    "karma": "^1.5.0",
+    "tslint": "^4.5.1",
+    "typescript": "^2.2.1",
+    "typings": "^2.1.0"
   }
 }

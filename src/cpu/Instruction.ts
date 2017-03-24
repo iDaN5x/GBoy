@@ -3,10 +3,10 @@
  */
 
 export class Instruction {
-    private _runner : Function;
-    private _args : any[];
+    private _runner: Function;
+    private _args: any[];
 
-    public constructor(runner : Function, ...args : any[]) {
+    public constructor(runner: Function, ...args: any[]) {
         this._runner = runner;
         this._args = args;
     }
@@ -16,4 +16,4 @@ export class Instruction {
     }
 }
 
- export default Instruction;
+export default Instruction;

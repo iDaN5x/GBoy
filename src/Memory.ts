@@ -20,7 +20,7 @@ export class Memory {
     public ReadWord(address: Word) : Word {
         return (
             this.Read(address) +
-            (this.Read(address+1) << 8)
+            (this.Read(address + 1) << 8)
         );
     }
 
@@ -30,7 +30,7 @@ export class Memory {
 
     public WriteWord(address: Word, value: Word) : void {
         this.Write(address, value & 0xff);
-        this.Write(address+1, value >> 8);
+        this.Write(address + 1, value >> 8);
     }
 }
 
