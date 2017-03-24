@@ -1,0 +1,8 @@
+{
+  "name": "GBoy",
+  "dependencies": {},
+  "globalDependencies": {
+    "jasmine": "registry:dt/jasmine#2.5.2+20170315065549",
+    "karma": "registry:dt/karma#0.13.9+20160811111312"
+  }
+}
