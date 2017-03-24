@@ -4,33 +4,36 @@
  * Developer's note:
  * The Z80 CPU's architecture is little endian.
  */
-import {Byte, Word} from "./Primitives";
+import {UByte, UWord} from "./Primitives";
 
 export class Memory {
     public constructor() { this.Reset(); }
 
-    public Reset() : void {}
+    public Reset(): void {
+        // TODO: implement.
+    }
 
-    public Read(address: Word) : Byte {
-        // TODO: Implement supporting word restriction.
-        address &= 0xffff;
+    public ReadByte(address: UWord): UByte {
+        // TODO: Implement:
+        // support UWord size restriction.
         return 0;
     }
 
-    public ReadWord(address: Word) : Word {
+    public ReadWord(address: UWord): UWord {
         return (
-            this.Read(address) +
-            (this.Read(address + 1) << 8)
+            this.ReadByte(address) +
+            (this.ReadByte(address + 1) << 8)
         );
     }
 
-    public Write(address: Word, value: Byte) : void {
-        // TODO: Implement supporting size restrictions.
+    public WriteByte(address: UWord, value: UByte): void {
+        // TODO: Implement:
+        // support Byte size restrictions.
     }
 
-    public WriteWord(address: Word, value: Word) : void {
-        this.Write(address, value & 0xff);
-        this.Write(address + 1, value >> 8);
+    public WriteWord(address: UWord, value: UWord): void {
+        this.WriteByte(address, value & 0xff);
+        this.WriteByte(address + 1, value >> 8);
     }
 }
 
