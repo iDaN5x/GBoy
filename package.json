@@ -7,7 +7,7 @@
   "author": "Idan A. <idan5x@live.com>",
   "license": "MIT",
   "scripts": {
-    "postinstall": "typings install"
+    "postinstall": "./node_modules/.bin/typings install"
   },
   "devDependencies": {
     "jasmine": "^2.5.3",
