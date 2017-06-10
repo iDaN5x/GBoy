@@ -3,7 +3,7 @@
  */
 import {Registers, ByteRegister, WordRegister, PointerRegister} from "./Registers";
 import {Memory, PageZeroLocation} from "../Memory";
-import {UByte, UWord, NBit, Byte} from "../Primitives";
+import {UByte, UWord, NBit, Byte, Word} from "../Primitives";
 import {Flags} from "./Flags";
 
 enum InterruptsState { Enabling, Enabled, Disabling, Disabled }
@@ -61,13 +61,13 @@ export class Z80 {
     /*
      * Stack handling.
      */
-    private _stackPush(value: UWord): void {
+    private _stackPush(value: UWord) : void {
         this._mem.WriteWord(this._regs.SP, value);
         this._regs.SP -= 2;
     }
 
-    private _stackPop(): UWord {
-        let res = this._mem.ReadWord(this._regs.SP);
+    private _stackPop() : UWord {
+        const res = this._mem.ReadWord(this._regs.SP);
         this._regs.SP += 2;
         return res;
     }
@@ -75,17 +75,22 @@ export class Z80 {
     /*
      * Operand handling.
      */
-    private _fetchUByte(): UByte {
-        return this._mem.ReadByte(this._regs.PC++);
+    private _fetchUByte() : UByte {
+        return this._mem.ReadUByte(this._regs.PC++);
     }
 
     private _fetchByte() : Byte {
-        let op = this._mem.ReadByte(this._regs.PC++);
-        return op < 128 ? op : op - 256;
+        return this._mem.ReadByte(this._regs.PC++);
     }
 
-    private _fetchUWord(): UWord {
-        let res = this._mem.ReadWord(this._regs.PC);
+    private _fetchUWord() : UWord {
+        const res = this._mem.ReadUWord(this._regs.PC);
+        this._regs.PC += 2;
+        return res;
+    }
+
+    private _fetchWord() : Word {
+        const res = this._mem.ReadWord(this._regs.PC);
         this._regs.PC += 2;
         return res;
     }
@@ -177,11 +182,11 @@ export class Z80 {
     }
 
     private _LD_HL_$SPe() : void {
-        let e = this._fetchByte(),
-            add = this._regs.SP + e;
+        const e = this._fetchByte(),
+              add = this._regs.SP + e;
 
-        let spNib = this._regs.SP & 0x000f,
-            eNib = e & 0x0f;
+        const spNib = this._regs.SP & 0x000f,
+              eNib = e & 0x0f;
 
         this._regs.HL = this._mem.ReadWord(add);
 
@@ -201,12 +206,12 @@ export class Z80 {
     /*
      * 8-bit ALU.
      */
-    private _ADCy_A_s(s: UByte, cy = false): void {
-        let A_low = this._regs.A & 0x0f,
-            s_low = s & 0x0f,
-            c = +cy;
+    private _ADCy_A_s(s: UByte, cy = false) : void {
+        const A_low = this._regs.A & 0x0f,
+              s_low = s & 0x0f,
+              c = +cy;
 
-        let res = this._regs.A + s + c;
+        const res = this._regs.A + s + c;
         this._regs.A = res;
 
         this._setFlag(Flags.Carry, res > 0xff);
@@ -242,12 +247,12 @@ export class Z80 {
         );
     }
 
-    private _SBCy_A_s(s: UByte, cy = false): void {
-        let A_low = this._regs.A & 0x0f,
-            s_low = s & 0x0f,
-            c = +cy;
+    private _SBCy_A_s(s: UByte, cy = false) : void {
+        const A_low = this._regs.A & 0x0f,
+              s_low = s & 0x0f,
+              c = +cy;
 
-        let res = this._regs.A - s - c;
+        const res = this._regs.A - s - c;
         this._regs.A = res;
 
         this._setFlag(Flags.Carry, res < 0);
@@ -283,7 +288,7 @@ export class Z80 {
         );
     }
 
-    private _AND_s(s: UByte): void {
+    private _AND_s(s: UByte) : void {
         this._regs.A &= s;
 
         this._setFlag(Flags.HalfCarry);
@@ -303,7 +308,7 @@ export class Z80 {
         this._AND_s(this._mem.ReadByte(this._regs.HL));
     }
 
-    private _OR_s(s: UByte): void {
+    private _OR_s(s: UByte) : void {
         this._regs.A |= s;
 
         this._unsetFlag(Flags.Carry | Flags.HalfCarry | Flags.Negative);
@@ -322,7 +327,7 @@ export class Z80 {
         this._OR_s(this._mem.ReadByte(this._regs.HL));
     }
 
-    private _XOR_s(s: UByte): void {
+    private _XOR_s(s: UByte) : void {
         this._regs.A ^= s;
 
         this._unsetFlag(Flags.Carry | Flags.HalfCarry | Flags.Negative);
@@ -341,11 +346,11 @@ export class Z80 {
         this._XOR_s(this._mem.ReadByte(this._regs.HL));
     }
 
-    private _CP_s(s: UByte): void {
-        let A_low = this._regs.A & 0x0f,
-            s_low = s & 0x0f;
+    private _CP_s(s: UByte) : void {
+        const A_low = this._regs.A & 0x0f,
+              s_low = s & 0x0f;
 
-        let res = this._regs.A - s;
+        const res = this._regs.A - s;
 
         this._setFlag(Flags.Carry, res < 0);
         this._setFlag(Flags.HalfCarry, A_low - s_low < 0);
@@ -366,7 +371,7 @@ export class Z80 {
     }
 
     private _INC_r(r: ByteRegister) : void {
-        let res = this._regs[r] += 1;
+        const res = this._regs[r] += 1;
 
         this._setFlag(Flags.HalfCarry, (res & 0x0f) === 0);
         this._setFlag(Flags.Zero, res === 0);
@@ -374,7 +379,7 @@ export class Z80 {
     }
 
     private _INC_$HL() : void {
-        let res = this._mem.ReadByte(this._regs.HL) + 1;
+        const res = this._mem.ReadByte(this._regs.HL) + 1;
         this._mem.WriteByte(this._regs.HL, res);
 
         this._setFlag(Flags.HalfCarry, (res & 0x0f) === 0);
@@ -383,7 +388,7 @@ export class Z80 {
     }
 
     private _DEC_r(r: ByteRegister) : void {
-        let res = this._regs[r] -= 1;
+        const res = this._regs[r] -= 1;
 
         this._setFlag(Flags.HalfCarry, (res & 0x0f) === 0x0f);
         this._setFlag(Flags.Zero, res === 0);
@@ -391,7 +396,7 @@ export class Z80 {
     }
 
     private _DEC_$HL() : void {
-        let res = this._mem.ReadByte(this._regs.HL) - 1;
+        const res = this._mem.ReadByte(this._regs.HL) - 1;
         this._mem.WriteByte(this._regs.HL, res);
 
         this._setFlag(Flags.HalfCarry, (res & 0x0f) === 0x0f);
@@ -403,10 +408,10 @@ export class Z80 {
      * 16-bit Arithmetic operations.
      */
     private _ADD_HL_ss(ss: WordRegister|PointerRegister) : void {
-        let hl_sec = this._regs.HL & 0x0fff,
-            s_sec = this._regs[ss] & 0x0fff;
+        const hl_sec = this._regs.HL & 0x0fff,
+              s_sec = this._regs[ss] & 0x0fff;
 
-        let res = this._regs.HL + this._regs[ss];
+        const res = this._regs.HL + this._regs[ss];
         this._regs.HL = res;
 
         this._setFlag(Flags.Carry, res > 0xffff);
@@ -415,12 +420,12 @@ export class Z80 {
     }
 
     private _ADD_SP_e() : void {
-        let e = this._fetchByte();
+        const e = this._fetchByte();
 
-        let spNib = this._regs.SP & 0x000f,
-            eNib = e & 0x0f;
+        const spNib = this._regs.SP & 0x000f,
+              eNib = e & 0x0f;
 
-        let res = this._regs.SP + e;
+        const res = this._regs.SP + e;
         this._regs.SP = res;
 
         this._setFlag(Flags.Carry, res > 0xffff);
@@ -440,7 +445,7 @@ export class Z80 {
      * Miscellaneous operations.
      */
     private _SWAP_r(r: ByteRegister) : void {
-        let op = this._regs[r];
+        const op = this._regs[r];
 
         this._regs[r] = (op >> 4) + (op << 4);
 
@@ -449,9 +454,9 @@ export class Z80 {
     }
 
     private _SWAP_$HL() : void {
-        let op = this._mem.ReadByte(this._regs.HL);
+        const op = this._mem.ReadByte(this._regs.HL);
 
-        let res = (op >> 4) + (op << 4);
+        const res = (op >> 4) + (op << 4);
 
         this._mem.WriteByte(this._regs.HL, res);
 
@@ -461,7 +466,7 @@ export class Z80 {
 
     private _DAA() : void {
         // The LS nibble of Register A.
-        let rNib = this._regs.A & 0x0f;
+        const rNib = this._regs.A & 0x0f;
 
         // Check if the LS nibble is a non-BCD number.
         if (rNib > 9 || this._hasFlag(Flags.HalfCarry)) {
@@ -469,7 +474,7 @@ export class Z80 {
         }
 
         // The MS nibble of Register A.
-        let lNib = this._regs.A >> 4;
+        const lNib = this._regs.A >> 4;
 
         // Check if the MS nibble is a non-BCD number.
         // set Carry Flag if it was fixed, reset otherwise.
@@ -500,7 +505,7 @@ export class Z80 {
         this._unsetFlag(Flags.Negative | Flags.HalfCarry);
     }
 
-    private _NOP(): void {
+    private _NOP() : void {
         // No Operation.
     }
 
@@ -527,7 +532,7 @@ export class Z80 {
      * Rotate & Shift operations.
      */
     private _RLC_r(r: ByteRegister) : void {
-        let msb = this._regs[r] >> 7;
+        const msb = this._regs[r] >> 7;
 
         this._regs[r] = (this._regs[r] << 1) + msb;
 
@@ -537,10 +542,10 @@ export class Z80 {
     }
 
     private _RLC_$HL() : void {
-        let op = this._mem.ReadByte(this._regs.HL);
+        const op = this._mem.ReadByte(this._regs.HL);
 
-        let msb = op >> 7;
-        let res = (op << 1) + msb;
+        const msb = op >> 7;
+        const res = (op << 1) + msb;
 
         this._mem.WriteByte(this._regs.HL, res);
 
@@ -550,8 +555,8 @@ export class Z80 {
     }
 
     private _RL_r(r: ByteRegister) : void {
-        let cy = +this._hasFlag(Flags.Carry),
-            msb = this._regs[r] >> 7;
+        const cy = +this._hasFlag(Flags.Carry),
+              msb = this._regs[r] >> 7;
 
         this._regs[r] = (this._regs[r] << 1) + cy;
 
@@ -561,11 +566,11 @@ export class Z80 {
     }
 
     private _RL_$HL() : void {
-        let op = this._mem.ReadByte(this._regs.HL),
-            cy = +this._hasFlag(Flags.Carry);
+        const op = this._mem.ReadByte(this._regs.HL),
+              cy = +this._hasFlag(Flags.Carry);
 
-        let res = (op << 1) + cy,
-            msb = op >> 7;
+        const res = (op << 1) + cy,
+              msb = op >> 7;
 
         this._mem.WriteByte(this._regs.HL, res);
 
@@ -575,7 +580,7 @@ export class Z80 {
     }
 
     private _RRC_r(r: ByteRegister) : void {
-        let lsb = this._regs[r] << 7;
+        const lsb = this._regs[r] << 7;
 
         this._regs[r] = (this._regs[r] >> 1) + lsb;
 
@@ -585,10 +590,10 @@ export class Z80 {
     }
 
     private _RRC_$HL() : void {
-        let op = this._mem.ReadByte(this._regs.HL);
+        const op = this._mem.ReadByte(this._regs.HL);
 
-        let lsb = op << 7;
-        let res = (op >> 1) + lsb;
+        const lsb = op << 7;
+        const res = (op >> 1) + lsb;
 
         this._mem.WriteByte(this._regs.HL, res);
 
@@ -598,8 +603,8 @@ export class Z80 {
     }
 
     private _RR_r(r: ByteRegister) : void {
-        let cy = +this._hasFlag(Flags.Carry),
-            lsb = this._regs[r] & 0b00000001;
+        const cy = +this._hasFlag(Flags.Carry),
+              lsb = this._regs[r] & 0b00000001;
 
         this._regs[r] = (this._regs[r] >> 1) + cy;
 
@@ -609,11 +614,11 @@ export class Z80 {
     }
 
     private _RR_$HL() : void {
-        let op = this._mem.ReadByte(this._regs.HL),
-            cy = +this._hasFlag(Flags.Carry);
+        const op = this._mem.ReadByte(this._regs.HL),
+              cy = +this._hasFlag(Flags.Carry);
 
-        let res = (op >> 1) + cy,
-            lsb = op & 0b00000001;
+        const res = (op >> 1) + cy,
+              lsb = op & 0b00000001;
 
         this._mem.WriteByte(this._regs.HL, res);
 
@@ -623,7 +628,7 @@ export class Z80 {
     }
 
     private _SLA_r(r: ByteRegister) : void {
-        let msb = this._regs[r] >> 7;
+        const msb = this._regs[r] >> 7;
 
         this._regs[r] <<= 1;
 
@@ -633,10 +638,10 @@ export class Z80 {
     }
 
     private _SLA_$HL() : void {
-        let op = this._mem.ReadByte(this._regs.HL);
+        const op = this._mem.ReadByte(this._regs.HL);
 
-        let res =  op << 1,
-            msb = op >> 7;
+        const res =  op << 1,
+              msb = op >> 7;
 
         this._mem.WriteByte(this._regs.HL, res);
 
@@ -646,7 +651,7 @@ export class Z80 {
     }
 
     private _SRA_r(r: ByteRegister) : void {
-        let msb = this._regs[r] & 0b10000000;
+        const msb = this._regs[r] & 0b10000000;
 
         this._regs[r] = (this._regs[r] >> 1) + msb;
 
@@ -656,10 +661,10 @@ export class Z80 {
     }
 
     private _SRA_$HL() : void {
-        let op = this._mem.ReadByte(this._regs.HL);
+        const op = this._mem.ReadByte(this._regs.HL);
 
-        let msb = op & 0b10000000;
-        let res = (op >> 1) + msb;
+        const msb = op & 0b10000000;
+        const res = (op >> 1) + msb;
 
         this._mem.WriteByte(this._regs.HL, res);
 
@@ -669,7 +674,7 @@ export class Z80 {
     }
 
     private _SRL_r(r: ByteRegister) : void {
-        let lsb = this._regs[r] & 0b00000001;
+        const lsb = this._regs[r] & 0b00000001;
 
         this._regs[r] >>= 1;
 
@@ -679,10 +684,10 @@ export class Z80 {
     }
 
     private _SRL_$HL() : void {
-        let op = this._mem.ReadByte(this._regs.HL);
+        const op = this._mem.ReadByte(this._regs.HL);
 
-        let res =  op >> 1,
-            lsb = op & 0b00000001;
+        const res =  op >> 1,
+              lsb = op & 0b00000001;
 
         this._mem.WriteByte(this._regs.HL, res);
 
@@ -695,7 +700,7 @@ export class Z80 {
      * Bit operations.
      */
     private _BIT_x_r(b: NBit, r: ByteRegister) : void {
-        let musk = 1 << b;
+        const musk = 1 << b;
 
         this._setFlag(Flags.HalfCarry);
         this._unsetFlag(Flags.Negative);
@@ -703,8 +708,8 @@ export class Z80 {
     }
 
     private _BIT_b_$HL(b: NBit) : void {
-        let op = this._mem.ReadByte(this._regs.HL),
-            musk = 1 << b;
+        const op = this._mem.ReadByte(this._regs.HL),
+              musk = 1 << b;
 
         this._setFlag(Flags.HalfCarry);
         this._unsetFlag(Flags.Negative);
@@ -716,8 +721,8 @@ export class Z80 {
     }
 
     private _SET_b_$HL(b: NBit) : void {
-        let op = this._mem.ReadByte(this._regs.HL),
-            set = 1 << b;
+        const op = this._mem.ReadByte(this._regs.HL),
+              set = 1 << b;
 
         this._mem.WriteByte(this._regs.HL, op | set);
     }
@@ -727,8 +732,8 @@ export class Z80 {
     }
 
     private _RES_b_$HL(b: NBit) : void {
-        let op = this._mem.ReadByte(this._regs.HL),
-            reset = ~(1 << b);
+        const op = this._mem.ReadByte(this._regs.HL),
+              reset = ~(1 << b);
 
         this._mem.WriteByte(this._regs.HL, op & reset);
     }

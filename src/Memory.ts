@@ -1,39 +1,52 @@
 /**
  * Created by Idan Asraf on 19/03/2017.
- *
- * Developer's note:
- * The Z80 CPU's architecture is little endian.
  */
-import {UByte, UWord} from "./Primitives";
+import {Byte, UByte, UWord, Word} from "./Primitives";
 
 export class Memory {
+    // The Z80 CPU's architecture is little endian.
+    private static readonly LITTLE_ENDIAN = true;
+
+    private _buffer: ArrayBuffer;
+    private _view: DataView;
+
     public constructor() { this.Reset(); }
 
-    public Reset(): void {
-        // TODO: implement.
+    public Reset() : void {
+        this._buffer = new ArrayBuffer(0xffff);
+        this._view = new DataView(this._buffer);
     }
 
-    public ReadByte(address: UWord): UByte {
-        // TODO: Implement:
-        // support UWord size restriction.
-        return 0;
+    public ReadUByte(address: UWord) : UByte {
+        return this._view.getUint8(address);
     }
 
-    public ReadWord(address: UWord): UWord {
-        return (
-            this.ReadByte(address) +
-            (this.ReadByte(address + 1) << 8)
-        );
+    public WriteUByte(address: UWord, value: UByte) : void {
+        this._view.setUint8(address, value);
     }
 
-    public WriteByte(address: UWord, value: UByte): void {
-        // TODO: Implement:
-        // support Byte size restrictions.
+    public ReadByte(address: UWord) : Byte {
+        return this._view.getInt8(address);
     }
 
-    public WriteWord(address: UWord, value: UWord): void {
-        this.WriteByte(address, value & 0xff);
-        this.WriteByte(address + 1, value >> 8);
+    public WriteByte(address: UWord, value: Byte) : void {
+        this._view.setInt8(address, value);
+    }
+
+    public ReadUWord(address: UWord) : UWord {
+        return this._view.getUint16(address, Memory.LITTLE_ENDIAN);
+    }
+
+    public WriteUWord(address: UWord, value: UWord) : void {
+        this._view.setUint16(address, value, Memory.LITTLE_ENDIAN);
+    }
+
+    public ReadWord(address: UWord) : Word {
+        return this._view.getInt16(address, Memory.LITTLE_ENDIAN);
+    }
+
+    public WriteWord(address: UWord, value: Word) : void {
+        this._view.setInt16(address, value, Memory.LITTLE_ENDIAN);
     }
 }
 

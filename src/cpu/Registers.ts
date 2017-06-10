@@ -50,7 +50,7 @@ export class Registers {
     /*
      * 8-bit register accessors.
      */
-    public get A(): UByte {
+    public get A() : UByte {
         return this._a;
     }
 
@@ -58,7 +58,7 @@ export class Registers {
         this._a = value & 0xff;
     }
 
-    public get B(): UByte {
+    public get B() : UByte {
         return this._b;
     }
 
@@ -66,7 +66,7 @@ export class Registers {
         this._b = value & 0xff;
     }
 
-    public get C(): UByte {
+    public get C() : UByte {
         return this._c;
     }
 
@@ -74,7 +74,7 @@ export class Registers {
         this._c = value & 0xff;
     }
 
-    public get D(): UByte {
+    public get D() : UByte {
         return this._d;
     }
 
@@ -82,7 +82,7 @@ export class Registers {
         this._d = value & 0xff;
     }
 
-    public get E(): UByte {
+    public get E() : UByte {
         return this._e;
     }
 
@@ -90,7 +90,7 @@ export class Registers {
         this._e = value & 0xff;
     }
 
-    public get F(): UByte {
+    public get F() : UByte {
         return this._f;
     }
 
@@ -98,7 +98,7 @@ export class Registers {
         this._f = value & 0xff;
     }
 
-    public get H(): UByte {
+    public get H() : UByte {
         return this._h;
     }
 
@@ -106,7 +106,7 @@ export class Registers {
         this._h = value & 0xff;
     }
 
-    public get L(): UByte {
+    public get L() : UByte {
         return this._l;
     }
 
@@ -117,7 +117,7 @@ export class Registers {
     /*
      * 16-bit register accessors.
      */
-    public get PC(): UWord {
+    public get PC() : UWord {
         return this._pc;
     }
 
@@ -125,7 +125,7 @@ export class Registers {
         this._pc = value & 0xffff;
     }
 
-    public get SP(): UWord {
+    public get SP() : UWord {
         return this._sp;
     }
 
@@ -136,7 +136,7 @@ export class Registers {
     /*
      * Register-duos accessors.
      */
-    public get AF(): UWord {
+    public get AF() : UWord {
         return (this._a << 8) + this._f;
     }
 
@@ -145,7 +145,7 @@ export class Registers {
         this._f = value & 0xff;
     }
 
-    public get BC(): UWord {
+    public get BC() : UWord {
         return (this._b << 8) + this._c;
     }
 
@@ -154,7 +154,7 @@ export class Registers {
         this._c = value & 0xff;
     }
 
-    public get DE(): UWord {
+    public get DE() : UWord {
         return (this._d << 8) + this._e;
     }
 
@@ -163,7 +163,7 @@ export class Registers {
         this._e = value & 0xff;
     }
 
-    public get HL(): UWord {
+    public get HL() : UWord {
         return (this._h << 8) + this._l;
     }
 
@@ -175,7 +175,7 @@ export class Registers {
     /*
      * @override.
      */
-    public toString(): string {
+    public toString() : string {
         return `{
             A=${this._a}, B=${this._b}, D=${this._d}, H=${this._h},
             F=${this._f}, C=${this._c}, E=${this._e}, L=${this._l},

@@ -3,10 +3,10 @@
  */
 
 export class Instruction {
-    private _runner: Function;
+    private _runner: (args: any[]) => void;
     private _args: any[];
 
-    public constructor(runner: Function, ...args: any[]) {
+    public constructor(runner: (args: any[]) => void, ...args: any[]) {
         this._runner = runner;
         this._args = args;
     }
